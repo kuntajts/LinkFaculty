@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>Example</title>
+</head>
+<body style="margin: 0; border: 0;" onload="onload()">
+	<script type="text/javascript">
+		//resizing the viewport to fit the entire page
+		function onload() {
+			document.getElementById("viewport").height = window.innerHeight;
+			document.getElementById("viewport").width = window.innerWidth;
+		}
+	</script>
+	<canvas id="viewport" width="800" height="600"></canvas>
+	
+	<script src="jquery-1.10.2.js"></script>
+	<script src="lib/arbor.js"></script> 
+	<script src="lib/arbor-tween.js"></script>
+	
+	<script src="ajax.js"></script>
+	<script src="main.js"></script>
+
+</body>
+</html>
