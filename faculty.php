@@ -3,20 +3,21 @@
     if (!$conx) {echo "yo"; die('Could not connect: ' . mysql_error());}
     mysql_select_db("schoolDB_Linc");
 
-	$query = "SELECT * FROM Names";
+	$query = "SELECT * FROM Schools";
 	$result = mysql_query($query);
 
-
-	$arr = array();
+	//unique id is 
+	$nodes = array();
+	$edges = array();
 	while($row = mysql_fetch_array($result)) {
-		//echo $row['ID']." ".$row['name'];
-		//echo "<br>";
-		$newarr = array('id'=>$row['ID'], 'name' => $row['name']);
-		array_push($arr, $newarr);
+		$newarr = array("Schools".$row['ID'] => array('name' => $row['Schools']));
+		$nodes = array_merge($nodes, $newarr);
+		$newarr = array("Schools".$row['ID'] => array());
+		$edges = array_merge($edges, $newarr);
 	}
 
-	/*$row = mysql_fetch_array($result);*/
-	echo json_encode($arr);
+	$arr2 = array("nodes" => $nodes, "edges" => array("Ithaca College" => $edges));
+
+	
+	echo json_encode($arr2, JSON_FORCE_OBJECT);
 ?>
-
-

@@ -54,7 +54,7 @@
 				particleSystem.eachNode(function(node, pt) {
 					// node: {mass:#, p:{x,y}, name:"", data:{}}
 					// pt:   {x:#, y:#}  node position in screen coords
-					var newname = node.name;
+					var newname = node.data.name;
 					//draw rectangle at pt
 					var w = Math.max(10, 10 + ctx.measureText(newname).width/2);
 					ctx.beginPath();
@@ -142,8 +142,9 @@
 		sys.parameters({stiffness:900, repulsion:2000, gravity:true, dt:0.015})//use center of gravity to make graph settle nicely
 		sys.renderer = Renderer("#viewport"); //our newly created renderer will have its .init() method called shortly by sys..
 		
+		sys.addNode('Ithaca College', {alone:true, name:"Ithaca College"});
 		//add some nodes to the graph
-		sys.addNode('Ithaca College', {alone:true});
+		/*sys.addNode('Ithaca College', {alone:true});
 		sys.addNode('Park', {alone:true});
 		sys.addNode('HS', {alone:true});
 
@@ -152,8 +153,38 @@
 		sys.addEdge('Ithaca College','HS');
 		sys.addEdge('Ithaca College','Music');
 		sys.addEdge('Ithaca College','Business');
-	    sys.addEdge('Ithaca College','HSHP');
+	    sys.addEdge('Ithaca College','HSHP');*/
+
+	    /*var theUI = {
+	    	nodes: {
+	    		Park: {alone:true},
+	    		HS: {alone:true},
+	    		Music: {alone:true},
+	    		Business: {alone:true},
+	    		HSHP: {alone:true}
+	    	},
+	    	edges: {
+	    		"Ithaca College": {
+	    			Park: {},
+	    			HS: {},
+	    			Music: {},
+	    			Business: {},
+	    			HSHP: {}
+	    		}
+	    	}
+	    }
+
+	    var hey = {
+	    	nodes: {
+	    		wasup: {alone: true}
+	    	}
+	    }
+
+	    sys.graft(theUI);
+	    sys.graft(hey);*/
 	   	
+
+	   	//ajax call for all faculty just for test
     	var request = $.ajax({
     		type: "POST",
     		url: "faculty.php",
@@ -161,9 +192,8 @@
     	});
 
     	request.done(function(result){
-    		for (var i = 0; i < result.length; i++) {
-    			sys.addNode(result[i].id);
-    		}
+    		
+    		sys.graft(result);
     	})
 
     	
