@@ -10,3 +10,5 @@ This project is to be a mini exercise to the research project link, which is an 
 There are different schools at our school and different departments in each school which denotes the different majors and finally each of those departments have faculty. The first challenge of this mini project is to show the connection from school to department to faculty. The visualization will be done using the arbor.js framework that uses JavaScript’s canvas. The backend database will be done by MySQL. 
 
 The second part of this project is to connect the faculty with other faculty through their on-campus committees. A committee can include faculty from many different departments and the goal is to produce a visualization showing the connections between each faculty member and their committee. 
+
+See Implimentation here: [http://jimi.ithaca.edu/~jsmith12/LinkFaculty/example.html](http://jimi.ithaca.edu/~jsmith12/LinkFaculty/example.html)
