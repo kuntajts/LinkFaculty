@@ -1,3 +1,4 @@
+//ajax call for all faculty just for test
 (function($){
 	Renderer = function(canvas){
 		var dom = $(canvas);
@@ -43,8 +44,8 @@
 				
 
 					//line from pt1 to pt2
-					ctx.strokeStyle = "rgba(0,0,0, .333)";
-					ctx.lineWidth = 1;
+					ctx.strokeStyle = (edge.data.bold) ?  "rgba(0,0,0, .666)" : "rgba(0,0,0, .333)";
+					ctx.lineWidth = (edge.data.bold) ? 3 : 1;
 					ctx.beginPath();
 					ctx.moveTo(pt1.x, pt1.y);
 					ctx.lineTo(pt2.x, pt2.y);
@@ -52,11 +53,9 @@
 				});
 				
 				particleSystem.eachNode(function(node, pt) {
-					// node: {mass:#, p:{x,y}, name:"", data:{}}
-					// pt:   {x:#, y:#}  node position in screen coords
 					var newname = node.data.name;
 					//draw rectangle at pt
-					var w = Math.max(10, 10 + ctx.measureText(newname).width/2);
+					var w = 10;
 					ctx.beginPath();
 					ctx.arc(pt.x, pt.y, w, 0, 2 * Math.PI, false);
 					ctx.fillStyle = (node.data.alone) ? "orange" : "darkblue";
@@ -64,10 +63,10 @@
 
 					ctx.font = "12px Helvetica";
 					ctx.textAlign = "center";
-            		ctx.fillStyle = "white";
+            		ctx.fillStyle = "black";
             		
 
-            		ctx.fillText(newname, pt.x, pt.y+4);
+            		ctx.fillText(newname, pt.x, pt.y-12);
 				});
 				
 			},
@@ -139,62 +138,21 @@
 	$(document).ready(function() {
 
 		var sys = arbor.ParticleSystem(); //create system with params
-		sys.parameters({stiffness:900, repulsion:2000, gravity:true, dt:0.015})//use center of gravity to make graph settle nicely
+		sys.parameters({stiffness:300, friction:.5, repulsion:7000, gravity:true})//use center of gravity to make graph settle nicely
 		sys.renderer = Renderer("#viewport"); //our newly created renderer will have its .init() method called shortly by sys..
 		
 		sys.addNode('Ithaca College', {alone:true, name:"Ithaca College"});
-		//add some nodes to the graph
-		/*sys.addNode('Ithaca College', {alone:true});
-		sys.addNode('Park', {alone:true});
-		sys.addNode('HS', {alone:true});
 
-		
-		sys.addEdge('Ithaca College','Park');
-		sys.addEdge('Ithaca College','HS');
-		sys.addEdge('Ithaca College','Music');
-		sys.addEdge('Ithaca College','Business');
-	    sys.addEdge('Ithaca College','HSHP');*/
-
-	    /*var theUI = {
-	    	nodes: {
-	    		Park: {alone:true},
-	    		HS: {alone:true},
-	    		Music: {alone:true},
-	    		Business: {alone:true},
-	    		HSHP: {alone:true}
-	    	},
-	    	edges: {
-	    		"Ithaca College": {
-	    			Park: {},
-	    			HS: {},
-	    			Music: {},
-	    			Business: {},
-	    			HSHP: {}
-	    		}
-	    	}
-	    }
-
-	    var hey = {
-	    	nodes: {
-	    		wasup: {alone: true}
-	    	}
-	    }
-
-	    sys.graft(theUI);
-	    sys.graft(hey);*/
-	   	
-
-	   	//ajax call for all faculty just for test
-    	var request = $.ajax({
-    		type: "POST",
-    		url: "faculty.php",
-    		dataType: 'json'
-    	});
-
-    	request.done(function(result){
-    		
-    		sys.graft(result);
-    	})
+	   	var request = $.ajax({
+			type: "POST",
+			url: "faculty.php",
+			data: { displayConnections: true},
+			dataType: 'json',
+			async: false,
+			success: function(result){
+				sys.graft(result);
+			}
+		});
 
     	
 	});
