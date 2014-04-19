@@ -1,11 +1,12 @@
 <?php
     
 	
-	/*if (isset($_POST['displayConnections'])){
+	if (isset($_POST['displayConnections'])){
 		queryInfo();	
-	}*/
-
-	queryInfo();
+	} else if (isset($_POST['displayFaculty'])) {
+		queryFac();
+	}
+	//queryInfo();
 
 	function queryInfo(){
 
@@ -34,7 +35,7 @@
 			$name = $row['Schools'];
 			$name = $name;
 
-			$newNode = array("Schools".$row['ID'] => array('name' => $name, 'alone' => True));
+			$newNode = array("Schools".$row['ID'] => array('name' => $name, 'alone' => "orange"));
 			$nodes = array_merge($nodes, $newNode);
 
 			$newEdge = array("Schools".$row['ID'] => array('bold' => True));
@@ -52,10 +53,10 @@
 				$name = $row['Department'];
 				$name = shortenName($name);
 
-				$newNode = array("Dpts".$row['ID'] => array('name' => $name));
+				$newNode = array("Department".$row['ID'] => array('name' => $name, 'alone' => "darkblue"));
 				$nodes = array_merge($nodes, $newNode);
 
-				$newEdge = array("Dpts".$row['ID'] => array());
+				$newEdge = array("Department".$row['ID'] => array());
 				$departmentEdges = array_merge($departmentEdges, $newEdge);
 				array_push($departmentIDs, $row['ID']);
 			}
@@ -63,20 +64,6 @@
 			$edges = array_merge($edges, array("Schools".$i => $departmentEdges));
 
 		}
-
-		/*for ( $i = 0; $i < count($departmentIDs); $i++) {
-			$query = "SELECT * FROM Association WHERE DepartmentID =".$departmentIDs[$i];
-			$result = mysql_query($query);
-			while ($row = mysql_fetch_array($result)) {
-				$query2 = "SELECT * FROM Names WHERE ID = ".$row['FacultyID']." LIMIT 1";
-				$result2 = mysql_query($query2);
-				$row2 = mysql_fetch_row($result2);
-
-				$name = $row2[1];
-				$newNode = array("Names".$row2[0] => array('name' => $name);
-				$nodes = array_merge($nodes, $newNode);
-			}
-		}*/
 
 		$allEdges = array("Ithaca College" => $schoolEdges);
 		$allEdges = array_merge($allEdges, $edges);
@@ -89,11 +76,60 @@
 
 	function shortenName($originalName) {
 		$newName = $originalName;
-		if (strlen($originalName) > 30) {
-			$newName = preg_replace('/[a-z]/', '', $originalName);
-		}
+		$newName = preg_replace('/Department of /', '', $originalName);
 
 		return $newName;
+	}
+
+	function getTableData() {
+		$data = $_POST['displayFaculty'];
+		$table = preg_replace('/[0-9]/', '', $data);
+		$id = preg_replace('/[a-z]/', '', $data);
+		$id = preg_replace('/[A-Z]/', '', $id);
+
+		$result = array($table, $id);
+
+		return $result;
+	}
+
+	function queryFac() {
+		$tableData = getTableData();
+		$conx = mysql_connect("localhost:/tmp/mysql.sock", "cs205user", "ithaca");
+	    if (!$conx) {echo "yo"; die('Could not connect: ' . mysql_error());}
+	    mysql_select_db("schoolDB_Linc");
+
+	    $query = "SELECT * FROM Association WHERE ".$tableData[0]."ID = ".$tableData[1];
+		$result = mysql_query($query);
+		$finalArray = array();
+		$edges = array();
+		$facultyEdges = array();
+		$nodes = array();
+		$faculty = array();
+
+		$nodes = array_merge($nodes, array($_POST['displayFaculty'] => array('name' => $_POST['sourceName'], 'alone' => $_POST['sourceAlone'])));
+
+		while ($row = mysql_fetch_array($result)) {
+			array_push($faculty, ($row['FacultyID']));
+		}
+
+		for($i = 0; $i < count($faculty); $i++) {
+			$query = "SELECT * FROM Faculty WHERE ID = ".$faculty[$i]." LIMIT 1";
+			$result = mysql_query($query);
+
+			while($row = mysql_fetch_array($result)) {
+				$name = $row['name'];
+				$newNode = array("Faculty".$row['ID'] => array('name' => $name, 'alone' => "green"));
+				$nodes = array_merge($nodes, $newNode);
+
+				$newEdge = array("Faculty".$row['ID'] => array());
+				$facultyEdges = array_merge($facultyEdges, $newEdge);
+			}	
+			
+		}
+		$edges = array($_POST['displayFaculty'] => $facultyEdges);
+		$finalArray = array("nodes" => $nodes, "edges" => $edges);
+		
+		echo json_encode($finalArray, JSON_FORCE_OBJECT);
 	}
 	
 ?>

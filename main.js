@@ -1,6 +1,9 @@
 //ajax call for all faculty just for test
 (function($){
-	Renderer = function(canvas){
+	var sys = arbor.ParticleSystem(); //create system with params
+	sys.parameters({stiffness:300, repulsion:7000, gravity:true})//use center of gravity to make graph settle nicely
+	
+	Renderer = function(canvas) {
 		var dom = $(canvas);
 		var canvas = dom.get(0);
 		var ctx = canvas.getContext("2d");
@@ -23,7 +26,7 @@
 
 			resize:function() {
 				canvas.width = $(window).width();
-				canvas.height = $(window).height();
+				canvas.height = $(window).height() - 76;
 				particleSystem.screen({size:{width:canvas.width, height:canvas.height}});
 				that.redraw();
 			},
@@ -58,7 +61,7 @@
 					var w = 10;
 					ctx.beginPath();
 					ctx.arc(pt.x, pt.y, w, 0, 2 * Math.PI, false);
-					ctx.fillStyle = (node.data.alone) ? "orange" : "darkblue";
+					ctx.fillStyle = node.data.alone;
 					ctx.fill();
 
 					ctx.font = "12px Helvetica";
@@ -74,6 +77,7 @@
 			initMouseHandling:function() {
 				// no-nonsense drag and drop
 				var dragged = null;
+				var last = null;
 				
 				// set up a handler object that will initially listen for mousedowns then
 				// for moves and mouseups while dragging
@@ -85,7 +89,7 @@
 						
 						if (dragged && dragged.node !== null) {
 							// while we're dragging, don't let physics move the node
-							dragged.node.fixed = true;
+							dragged.node.fixed = true;							
 						}
 						
 						$(canvas).bind('mousemove', handler.dragged);
@@ -113,9 +117,32 @@
 						if (dragged === null || dragged.node === undefined) return;
 						if (dragged.node !== null) dragged.node.fixed = false;
 						
+						
+						if (dragged.node.data.alone == "darkblue" || dragged.node.data.alone == "orange") {
+							var request = $.ajax({
+								type: "POST",
+								url: "faculty.php",
+								data: {
+									displayFaculty: dragged.node.name,
+									sourceName: dragged.node.data.name,
+									sourceAlone: dragged.node.data.alone
+								},
+								dataType: 'json',
+								async: false,
+								success: function(result){
+									console.log(result);
+									sys.merge(result);
+									$("#back").show();
+								},
+								error: function(result) {
+									console.log("error");
+								}
+							});
+						}
+
 						dragged.node.tempMass = 1000;
 						dragged = null;
-						
+
 						$(canvas).unbind('mousemove' , handler.dragged);
 						$(window).unbind('mouseup' , handler.dropped);
 						
@@ -136,12 +163,11 @@
 
 
 	$(document).ready(function() {
-
-		var sys = arbor.ParticleSystem(); //create system with params
-		sys.parameters({stiffness:300, friction:.5, repulsion:7000, gravity:true})//use center of gravity to make graph settle nicely
 		sys.renderer = Renderer("#viewport"); //our newly created renderer will have its .init() method called shortly by sys..
+		var i = 0;
+		$("#back").hide();
 		
-		sys.addNode('Ithaca College', {alone:true, name:"Ithaca College"});
+		sys.addNode('Ithaca College', {alone:"orange", name:"Ithaca College"});
 
 	   	var request = $.ajax({
 			type: "POST",
@@ -152,6 +178,73 @@
 			success: function(result){
 				sys.graft(result);
 			}
+		});
+
+		var theUI = { 
+			nodes: {
+				"arbor.js": {
+					name:"ARBOR", alone:"orange"
+				}
+			},
+			edges:{
+				"arbor.js":{
+					"Ithaca College" : {}
+				}
+			}
+		}
+
+		//sys.graft(theUI);
+
+		$("#addNode").click(function(){
+			sys.addNode(i, {name: i});
+			if (i > 0) {
+				sys.addEdge(i, i-1);
+				sys.addEdge(i, 1);
+			}
+			i++;
+		});
+
+		$("#deleteNode").click(function(){
+			if(i > 0) {
+				i--;
+				sys.pruneNode(i)
+			}
+		});
+
+
+
+		$('#feedback').bind('fade-cycle', function() {
+			$(this).fadeOut(1000, function() {
+				$(this).fadeIn(1000, function() {
+					$(this).trigger('fade-cycle');
+				});
+			});
+		});
+
+		$('#feedback').each(function(index, elem) {
+			setTimeout(function() {
+				$(elem).trigger('fade-cycle');
+			}, index * 500);
+		});
+
+		$("#feedback").click(function() {
+			window.location="https://docs.google.com/forms/d/1J0jU2ZHPln4_5Z1BLpU2FbliFGLvoxThfm9S2pn5cQk/viewform?usp=send_form";
+		});
+
+
+		$("#back").click(function() {
+			var request = $.ajax({
+				type: "POST",
+				url: "faculty.php",
+				data: { displayConnections: true},
+				dataType: 'json',
+				async: false,
+				success: function(result){
+					sys.merge(result);
+					sys.addNode('Ithaca College', {alone:"orange", name:"Ithaca College"});
+					$("#back").hide();
+				}
+			});
 		});
 
     	
